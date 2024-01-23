@@ -1,62 +1,39 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy WAR app to Azure Web App - linux-java17
+name: Deploy App to Azure App Service
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Java version
-        uses: actions/setup-java@v1
+      - name: Checkout Source
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
         with:
+          distribution: 'temurin'
           java-version: '17'
-
-      - name: Build with Maven
-        run: mvn clean install
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+      - name: Build Project
+        run: mvn clean install -DskipTests
+      - name: Upload Artifacct for deployment job
+        uses: actions/upload-artifact@v2
         with:
-          name: java-app
-          path: '${{ github.workspace }}/target/*.war'
-
+          name: azure-springboot
+          path: ${{ github.workspace }}/target/*.jar
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
-
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+      - name: Download Artifact from build job
+        uses: actions/download-artifact@v2
         with:
-          name: java-app
-      
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C0C12A4969834C89953950C86596EDFA }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_3B2B991E9483407F8A9748D7BF87571A }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C3CF04B0ED5647DEB219DC57AEA14E0C }}
-
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
+          name: azure-springboot
+      - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'linux-java17'
-          slot-name: 'Production'
-          package: '*.war'
-          
+          app-name: springboot-app-test
+          publish-profile: ${{ secrets.azureWebAppPublishProfile }}
+          package: '*.jar'
