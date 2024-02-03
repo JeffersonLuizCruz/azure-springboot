@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/customers")
 public class CustomerController {
 
+
+
     @GetMapping
     public Customer customer(){
         return new Customer(1L, "Jefferson Luiz", "Welcome Jefferson!");
